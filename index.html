@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="تطبيق ورشة الكتابة العربية - اكتب كتاب من 100 جملة مع مساعدة ذكية" />
+    <meta name="theme-color" content="#f97316" />
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital@0;1&family=Arabic+Typesetting&family=Droid+Arabic+Naskh&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <title>ورشة الكتابة العربية - اكتب 100 جملة</title>
+    
+    <style>
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: #f97316 #f5f5f4;
+      }
+      *::-webkit-scrollbar {
+        width: 8px;
+      }
+      *::-webkit-scrollbar-track {
+        background: #f5f5f4;
+      }
+      *::-webkit-scrollbar-thumb {
+        background: #f97316;
+        border-radius: 4px;
+      }
+      *::-webkit-scrollbar-thumb:hover {
+        background: #ea580c;
+      }
+
+      @keyframes slideInRight {
+        from {
+          opacity: 0;
+          transform: translateX(100px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      @keyframes pulse {
+        0%, 100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      .animate-slide-in {
+        animation: slideInRight 0.5s ease-out;
+      }
+
+      .animate-spin {
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      body {
+        direction: rtl;
+      }
+
+      /* Ensure proper text direction for input fields */
+      textarea, input {
+        direction: rtl;
+      }
+
+      /* Beautiful focus states */
+      input:focus, textarea:focus {
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/main.jsx"></script>
+  </body>
+</html>

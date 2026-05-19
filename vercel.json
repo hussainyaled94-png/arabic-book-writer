@@ -1,0 +1,13 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm ci",
+  "framework": "vite",
+  "outputDirectory": "dist",
+  "env": {
+    "ANTHROPIC_API_KEY": {
+      "description": "Your Anthropic API key for Claude AI integration",
+      "required": false
+    }
+  }
+}
