@@ -183,6 +183,151 @@ const ArabicBookWriter = () => {
 
   const info = modeInfo[mode];
 
+  // Generate PDF
+  const generatePDF = async () => {
+    if (!bookDesign.title || !bookDesign.author) {
+      alert('الرجاء ملء العنوان واسم المؤلف');
+      return;
+    }
+
+    // Load jsPDF from CDN
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    script.onload = () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({
+        orientation: 'p',
+        unit: 'mm',
+        format: 'a4',
+        compress: true
+      });
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      let yPosition = 20;
+
+      // Set font
+      doc.setFont('Arial', 'normal');
+
+      // ===== COVER PAGE =====
+      doc.setFillColor(bookDesign.backgroundColor.replace('#', ''));
+      doc.rect(0, 0, pageWidth, pageHeight, 'F');
+
+      doc.setFont('Arial', 'bold');
+      doc.setFontSize(28);
+      doc.setTextColor(255, 255, 255);
+      doc.text(bookDesign.title, pageWidth / 2, pageHeight / 2 - 20, { align: 'center' });
+
+      doc.setFontSize(16);
+      doc.text(bookDesign.author, pageWidth / 2, pageHeight / 2 + 20, { align: 'center' });
+
+      // ===== NEW PAGE: DEDICATION =====
+      if (bookDesign.dedication) {
+        doc.addPage();
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(14);
+        doc.setFont('Arial', 'bold');
+        doc.text('الإهداء', 15, 30);
+        
+        doc.setFont('Arial', 'normal');
+        doc.setFontSize(12);
+        const dedicationLines = doc.splitTextToSize(bookDesign.dedication, pageWidth - 30);
+        doc.text(dedicationLines, 15, 45);
+      }
+
+      // ===== NEW PAGE: FOREWORD =====
+      if (bookDesign.foreword) {
+        doc.addPage();
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(14);
+        doc.setFont('Arial', 'bold');
+        doc.text('المقدمة', 15, 30);
+        
+        doc.setFont('Arial', 'normal');
+        doc.setFontSize(12);
+        const forewordLines = doc.splitTextToSize(bookDesign.foreword, pageWidth - 30);
+        doc.text(forewordLines, 15, 45);
+      }
+
+      // ===== NEW PAGE: TABLE OF CONTENTS =====
+      if (bookDesign.includeTableOfContents) {
+        doc.addPage();
+        doc.setFontSize(14);
+        doc.setFont('Arial', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text('جدول المحتويات', 15, 30);
+        
+        doc.setFont('Arial', 'normal');
+        doc.setFontSize(10);
+        let contentY = 45;
+        const completedSentences = sentences.filter(s => s.completed);
+        
+        completedSentences.forEach((s, index) => {
+          if (contentY > pageHeight - 20) {
+            doc.addPage();
+            contentY = 20;
+          }
+          doc.text(`${index + 1}. الجملة ${index + 1}`, 15, contentY);
+          contentY += 8;
+        });
+      }
+
+      // ===== CONTENT PAGES =====
+      doc.addPage();
+      doc.setFontSize(14);
+      doc.setFont('Arial', 'bold');
+      doc.text('المحتوى', 15, 30);
+      
+      doc.setFont('Arial', 'normal');
+      doc.setFontSize(11);
+      yPosition = 45;
+
+      const completedSentences = sentences.filter(s => s.completed);
+      completedSentences.forEach((sentence, index) => {
+        if (yPosition > pageHeight - 20) {
+          doc.addPage();
+          yPosition = 20;
+        }
+
+        const sentenceText = `${index + 1}. ${sentence.text}`;
+        const lines = doc.splitTextToSize(sentenceText, pageWidth - 30);
+        doc.text(lines, 15, yPosition);
+        yPosition += lines.length * 7 + 5;
+      });
+
+      // ===== ABOUT AUTHOR PAGE =====
+      doc.addPage();
+      doc.setFontSize(14);
+      doc.setFont('Arial', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text('عن المؤلف', 15, 30);
+      
+      doc.setFont('Arial', 'normal');
+      doc.setFontSize(11);
+      const bioLines = doc.splitTextToSize(bookDesign.authorBio, pageWidth - 30);
+      doc.text(bioLines, 15, 45);
+
+      // ===== METADATA PAGE =====
+      doc.addPage();
+      doc.setFontSize(10);
+      doc.setFont('Arial', 'normal');
+      doc.text(`العنوان: ${bookDesign.title}`, 15, 30);
+      doc.text(`المؤلف: ${bookDesign.author}`, 15, 40);
+      doc.text(`الفئة: ${bookDesign.category}`, 15, 50);
+      doc.text(`تاريخ النشر: ${bookDesign.publicationDate}`, 15, 60);
+      if (bookDesign.isbn) {
+        doc.text(`ISBN: ${bookDesign.isbn}`, 15, 70);
+      }
+      doc.text(`عدد الجمل: ${completedSentences.length}/100`, 15, 80);
+      doc.text(`عدد الكلمات: ${stats.totalWords}`, 15, 90);
+
+      // Save PDF
+      doc.save(`${bookDesign.title}.pdf`);
+      alert('✅ تم تحميل الكتاب PDF بنجاح!');
+    };
+    document.head.appendChild(script);
+  };
+
   // ============ WRITING TAB ============
   if (activeTab === 'writing') {
     return (
@@ -776,48 +921,11 @@ const ArabicBookWriter = () => {
 
             {/* Export */}
             <button
-              onClick={() => {
-                if (!bookDesign.title || !bookDesign.author) {
-                  alert('الرجاء ملء العنوان واسم المؤلف');
-                  return;
-                }
-
-                const content = `
-${bookDesign.title.toUpperCase()}
-${'='.repeat(40)}
-
-تأليف: ${bookDesign.author}
-
-${bookDesign.dedication ? `الإهداء:\n${bookDesign.dedication}\n\n` : ''}
-
-المقدمة:
-${bookDesign.foreword}
-
-${'='.repeat(40)}
-المحتوى
-${'='.repeat(40)}
-
-${sentences.filter(s => s.completed).map((s, i) => `${i + 1}. ${s.text}`).join('\n\n')}
-
-${'='.repeat(40)}
-عن المؤلف
-${'='.repeat(40)}
-
-${bookDesign.authorBio}
-
-النشر: ${bookDesign.publicationDate}
-${bookDesign.isbn ? `ISBN: ${bookDesign.isbn}` : ''}
-                `;
-
-                const element = document.createElement('a');
-                element.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(content);
-                element.download = `${bookDesign.title}.txt`;
-                element.click();
-              }}
+              onClick={generatePDF}
               style={{ fontSize: '18px' }}
               className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-4 rounded-lg hover:shadow-lg font-bold"
             >
-              📥 تحميل الكتاب
+              📥 تحميل الكتاب PDF
             </button>
           </div>
 
